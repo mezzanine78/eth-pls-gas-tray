@@ -1,0 +1,4 @@
+*.vbs -text
+*.ps1 text
+*.psm1 text
+*.png binary

@@ -1,0 +1,54 @@
+Pester v6.2.0
+
+Running tests from 1 files.
+
+Running tests from '/workspace/agents/dooer/outputs/gas-tray/tests/GasTray.Core.Tests.ps1'
+Describing ConvertFrom-HexQuantity
+  [+] parses small and large quantities 96ms
+  [+] rejects garbage 25ms
+
+Describing ConvertFrom-FeeHistory
+  [+] uses the next-block base fee plus median tips 30ms
+  [+] works with no reward array (base fee only) 3ms
+
+Describing Formatting and levels
+  [+] Format-GasShort fits on an icon 22ms
+  [+] Format-GasShort fits on an icon 3ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort fits on an icon 3ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort fits on an icon 5ms
+  [+] Format-GasShort fits on an icon 5ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort handles null 2ms
+  [+] Get-GasLevel thresholds 7ms
+  [+] transfer cost maths 9ms
+  [+] tooltip stays within 63 chars 13ms
+
+Describing Settings
+  [+] merges partial settings onto defaults and sanitises 33ms
+  [+] round-trips through JSON on disk 29ms
+
+Describing Fallback logic (mocked)
+  [+] falls back to eth_gasPrice when eth_feeHistory fails everywhere 209ms
+  [+] Get-GasSnapshot never throws when every endpoint is dead 69ms
+
+Describing LIVE public endpoints
+  [+] ETH default endpoints return sane gas 196ms
+  [+] PLS default endpoints return sane gas 146ms
+  [+] ETH falls back past a dead first URL 227ms
+  [+] PLS falls back past a dead first URL 223ms
+  [+] endpoint ETH https://ethereum-rpc.publicnode.com answers eth_feeHistory 163ms
+  [+] endpoint ETH https://eth.drpc.org answers eth_feeHistory 219ms
+  [+] endpoint ETH https://rpc.flashbots.net answers eth_feeHistory 1.54s
+  [+] endpoint ETH https://rpc.mevblocker.io answers eth_feeHistory 262ms
+  [+] endpoint PLS https://pulsechain-rpc.publicnode.com answers eth_feeHistory 222ms
+  [+] endpoint PLS https://rpc.pulsechain.com answers eth_feeHistory 1.93s
+  [+] endpoint PLS https://rpc-pulsechain.g4mm4.io answers eth_feeHistory 260ms
+  [+] CoinGecko returns ETH and PLS AUD prices 209ms
+  [+] price failure returns null (fiat hidden) 70ms
+Tests completed in 6.73s
+Tests Passed: 35, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0
+RESULT: Passed passed=35 failed=0

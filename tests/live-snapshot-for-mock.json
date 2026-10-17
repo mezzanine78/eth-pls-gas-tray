@@ -1,0 +1,10 @@
+{
+  "time": "09:53:07",
+  "tooltip": "ETH 0.049 gwei A$0.004\nPLS 600.4K gwei A$0.0001",
+  "eth": "ETH  low 0.043 / avg 0.049 / fast 0.997 gwei  ~A$0.004 per transfer",
+  "pls": "PLS  low 558.6K / avg 600.4K / fast 931.0K gwei  ~A$0.0001 per transfer",
+  "ethIcon": ".05",
+  "ethLevel": "Green",
+  "plsIcon": "600K",
+  "plsLevel": "Green"
+}

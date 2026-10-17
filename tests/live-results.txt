@@ -1,0 +1,13 @@
+Live run 2026-10-18 09:53:38 +11:00 on Debian GNU/Linux 13 (trixie), PowerShell 7.4.6
+ETH default : low 0.0441 / avg 0.0489 / fast 0.9985 gwei (base 0.0441) via https://ethereum-rpc.publicnode.com
+PLS default : low 586,691 / avg 628,815 / fast 900,496 gwei (base 570,567) via https://pulsechain-rpc.publicnode.com
+ETH fallback: avg 0.0489 gwei via https://ethereum-rpc.publicnode.com after error [https://does-not-exist.invalid: The SSL connection could not be established, see inner exception.]
+PLS fallback: avg 628,815 gwei via https://pulsechain-rpc.publicnode.com
+ETH https://ethereum-rpc.publicnode.com      avg 0.0489 gwei
+ETH https://eth.drpc.org                     avg 0.0489 gwei
+ETH https://rpc.flashbots.net                avg 0.0489 gwei
+ETH https://rpc.mevblocker.io                avg 0.0489 gwei
+PLS https://pulsechain-rpc.publicnode.com    avg 539,246.4891 gwei
+PLS https://rpc.pulsechain.com               avg 526,266.6997 gwei
+PLS https://rpc-pulsechain.g4mm4.io          avg 539,246.4891 gwei
+Price AUD : ETH 3445.18 / PLS 1.063E-05

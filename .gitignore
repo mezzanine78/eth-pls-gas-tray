@@ -1,0 +1,22 @@
+# secrets / credentials (none should ever be here)
+.env
+.env.*
+auth.*
+*token*
+*.pem
+*.key
+*.pfx
+credentials*
+secrets*
+*oauth*
+# local data, caches, logs, backups
+*.db
+*.sqlite
+*.log
+*.bak
+*.orig
+*.tmp
+__pycache__/
+.vscode/
+.idea/
+tests/pester-results.xml
