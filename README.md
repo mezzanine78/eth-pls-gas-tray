@@ -25,18 +25,37 @@ It needs no API keys, no admin rights, and nothing to compile.
 `eth_feeHistory(20 blocks, "latest", [10, 50, 90])` gives the next-block base fee plus the median priority tip at the 10th, 50th and 90th percentiles, for **low**, **avg** and **fast**. If `eth_feeHistory` fails on every endpoint, the app falls back to `eth_gasPrice`, and all three tiers show that one value.
 Transfer cost is `gwei × 21000 × 1e-9 × price`. If the price lookup fails, the fiat cost is simply hidden.
 
-## Install (one-liner, per-user)
+## Install (private repo, per-user, no admin)
+The repo is **private**, so the raw `irm | iex` one-liner won't work. GitHub CLI handles auth instead, and no tokens are stored in any script.
+
+**Option A: clone and install (recommended)**
+```powershell
+winget install --id GitHub.cli        # if gh isn't installed yet
+gh auth login                         # once per machine (browser sign-in as mezzanine78)
+gh repo clone mezzanine78/eth-pls-gas-tray
+cd eth-pls-gas-tray
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+Update later with `git pull` followed by the same `install.ps1` line.
+
+**Option B: release zip**
+```powershell
+gh release download -R mezzanine78/eth-pls-gas-tray -p *.zip
+Expand-Archive .\eth-pls-gas-tray-v*.zip -DestinationPath .\gastray -Force
+powershell -ExecutionPolicy Bypass -File .\gastray\eth-pls-gas-tray\install.ps1
+```
+
+`install.ps1` uses the `src\` folder next to it, or the folder you name with `-SourcePath <folder>`. It copies the app to `%LOCALAPPDATA%\GasTray`, adds a **Start Menu → GasTray** shortcut and starts the app. Windows may hide new tray icons under the `^` overflow, so drag it onto the taskbar if you want it always visible.
+
+Installer options:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -StartWithWindows   # also add the HKCU Run entry
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -NoStart            # install without launching
+```
+
+*If the repo is ever made public*, the one-liner works too. When no local `src\` exists, the installer downloads from raw GitHub:
 ```powershell
 irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1 | iex
-```
-This downloads the app to `%LOCALAPPDATA%\GasTray`, adds a **Start Menu → GasTray** shortcut and starts the app. Windows may hide new tray icons under the `^` overflow, so drag it onto the taskbar if you want it always visible.
-
-To pass options:
-```powershell
-# install and enable start-with-Windows
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1))) -StartWithWindows
-# install without launching
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1))) -NoStart
 ```
 
 ## Manual run (from a clone or zip)
@@ -48,8 +67,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File
 # console self-test: fetch once, print, exit (also works with pwsh on Linux/macOS)
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\GasTray.ps1 -SelfTest
 
-# install from a local clone (copies .\src instead of downloading)
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 Works with Windows PowerShell 5.1 (built into Windows 11) and PowerShell 7+.
 
@@ -82,8 +99,8 @@ Works with Windows PowerShell 5.1 (built into Windows 11) and PowerShell 7+.
 ```powershell
 powershell -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\GasTray\uninstall.ps1"            # removes everything
 powershell -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\GasTray\uninstall.ps1" -KeepSettings
-# or
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1))) -Uninstall
+# or, from the clone / extracted zip
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall
 ```
 Uninstalling removes the running instance, the Run entry, the Start Menu shortcut, `%LOCALAPPDATA%\GasTray` and, unless you pass `-KeepSettings`, `%APPDATA%\GasTray`.
 
@@ -98,7 +115,7 @@ These endpoints were dropped after testing on 2026-10-18. `eth.llamarpc.com` ret
 
 ## Project layout
 ```
-install.ps1                 one-liner installer / uninstaller
+install.ps1                 installer / uninstaller (local src\ first, raw GitHub only if public)
 src/GasTray.ps1             tray app (WinForms UI, background fetch, -SelfTest)
 src/GasTray.Core.psm1       RPC + parsing + formatting + settings (no UI; testable anywhere)
 src/GasTray.vbs             hidden launcher (no console flash)
@@ -106,17 +123,19 @@ src/uninstall.ps1           copied into the install folder
 tests/GasTray.Core.Tests.ps1  Pester 5+ tests (tag "Live" hits the real endpoints)
 tools/Test-Syntax.ps1       parser + PSScriptAnalyzer check
 tools/render_mock.py        Pillow mock previews
+tools/Build-Release.ps1     builds dist/eth-pls-gas-tray-v<version>.zip (install.ps1 + src/ + README.md)
 ```
 Run tests: `Invoke-Pester ./tests` (add `-ExcludeTag Live` to stay offline).
 
 ## Tested / Not tested
 **Tested (Linux box, Debian 13, pwsh 7.4.6, 2026-10-18):**
-- Pester: **35/35 passed**. That covers hex parsing, fee-history maths, formatting, thresholds, settings merge and JSON round-trip, a mocked `eth_gasPrice` fallback, and "all endpoints dead" returning no data without throwing.
+- Pester: **35/35 passed** (22/22 offline-only re-run after the private-repo installer change). That covers hex parsing, fee-history maths, formatting, thresholds, settings merge and JSON round-trip, a mocked `eth_gasPrice` fallback, and "all endpoints dead" returning no data without throwing.
 - **Live** tests against every default endpoint. Each one answered `eth_feeHistory`, and the fallback past a dead first URL worked for both chains. CoinGecko returned AUD prices, and a dead price URL hid the fiat cost. Real values seen: ETH avg ~0.05–0.06 gwei, PLS avg ~540K–620K gwei, ETH A$3,446, PLS A$0.00001063. See `tests/live-results.txt`.
 - `GasTray.ps1 -SelfTest` end to end.
+- `install.ps1` source detection, simulated on Linux with fake `%LOCALAPPDATA%`/`%APPDATA%`. Run from a clone and from the extracted release zip, it picked the local `src\` folder and copied all 4 files byte-identical. A bad `-SourcePath` stops with a clear error. With no local `src\`, it tries raw GitHub and fails with the private-repo hint. The Windows-only steps (shortcut, start, Run key) could not run there.
 - Parser: 0 syntax errors in every `.ps1`/`.psm1`. PSScriptAnalyzer `PSUseCompatibleSyntax` reported 0 findings for 5.1 and 7.0. The remaining analyzer notes are intentional empty `catch {}` blocks and missing help comments.
 
 **Not tested:**
-- **The WinForms tray UI, icon drawing (System.Drawing), menu, Run-key toggle, installer, shortcut and uninstaller have not been run on real Windows yet.** WinForms and System.Drawing do not run on Linux. The preview PNGs are Pillow mocks of the same layout.
+- **The WinForms tray UI, icon drawing (System.Drawing), menu, Run-key toggle, the installer's Windows steps (shortcut, launch, process stop), and the uninstaller have not been run on real Windows yet.** WinForms and System.Drawing do not run on Linux. The preview PNGs are Pillow mocks of the same layout.
 - Windows PowerShell 5.1 itself. Compatibility was checked statically only.
 - Readability of 4-character values (e.g. `671K`) at 16 px / 100 % scaling. They will be small. Use 125 %+ scaling, or let the icon show ETH.

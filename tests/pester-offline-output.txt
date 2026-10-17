@@ -1,0 +1,41 @@
+Pester v6.2.0
+
+Running tests from 1 files.
+Filter 'ExcludeTag' set to ('Live').
+Filters selected 22 tests to run.
+
+Running tests from '/workspace/agents/dooer/outputs/gas-tray/tests/GasTray.Core.Tests.ps1'
+Describing ConvertFrom-HexQuantity
+  [+] parses small and large quantities 95ms
+  [+] rejects garbage 26ms
+
+Describing ConvertFrom-FeeHistory
+  [+] uses the next-block base fee plus median tips 31ms
+  [+] works with no reward array (base fee only) 2ms
+
+Describing Formatting and levels
+  [+] Format-GasShort fits on an icon 20ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort fits on an icon 3ms
+  [+] Format-GasShort fits on an icon 4ms
+  [+] Format-GasShort fits on an icon 6ms
+  [+] Format-GasShort fits on an icon 5ms
+  [+] Format-GasShort fits on an icon 7ms
+  [+] Format-GasShort fits on an icon 8ms
+  [+] Format-GasShort fits on an icon 104ms
+  [+] Format-GasShort handles null 2ms
+  [+] Get-GasLevel thresholds 8ms
+  [+] transfer cost maths 9ms
+  [+] tooltip stays within 63 chars 14ms
+
+Describing Settings
+  [+] merges partial settings onto defaults and sanitises 32ms
+  [+] round-trips through JSON on disk 29ms
+
+Describing Fallback logic (mocked)
+  [+] falls back to eth_gasPrice when eth_feeHistory fails everywhere 218ms
+  [+] Get-GasSnapshot never throws when every endpoint is dead 72ms
+Tests completed in 1.08s
+Tests Passed: 22, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 13
+RESULT: Passed passed=22 failed=0 skipped/notrun=13

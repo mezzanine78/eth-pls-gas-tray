@@ -4,21 +4,36 @@
     Installs (or uninstalls) GasTray - ETH / PLS gas meter for the Windows tray.
 
 .DESCRIPTION
-    One-liner install:
-        irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1 | iex
-
-    With options (run the downloaded script as a scriptblock):
-        & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1))) -StartWithWindows
-        & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1))) -Uninstall
-
     Installs per-user (no admin) to %LOCALAPPDATA%\GasTray, adds a Start Menu
-    shortcut and starts the app. If run from a local clone (GasTray.ps1 sitting in
-    .\src next to this script) it copies the local files instead of downloading.
+    shortcut and starts the app.
+
+    Source of the app files, in order:
+      1. -SourcePath <folder>, if given (folder containing GasTray.ps1 etc.).
+      2. The src\ folder next to this script (a git clone or extracted release zip).
+      3. Raw GitHub download - ONLY works while the repo is public (or with -Remote).
+
+    The repo is private, so install from a clone or release zip (no tokens needed
+    in this script; GitHub CLI handles auth):
+
+        gh auth login                                   # once per machine
+        gh repo clone mezzanine78/eth-pls-gas-tray
+        cd eth-pls-gas-tray
+        powershell -ExecutionPolicy Bypass -File .\install.ps1
+
+    or:
+        gh release download -R mezzanine78/eth-pls-gas-tray -p *.zip
+        Expand-Archive .\eth-pls-gas-tray-v*.zip -DestinationPath .\gastray
+        powershell -ExecutionPolicy Bypass -File (Get-ChildItem .\gastray -Recurse -Filter install.ps1 | Select-Object -First 1).FullName
+
+    If the repo is ever made public, the one-liner also works:
+        irm https://raw.githubusercontent.com/mezzanine78/eth-pls-gas-tray/main/install.ps1 | iex
 
 .PARAMETER NoStart           Do not launch GasTray after installing.
 .PARAMETER StartWithWindows  Also add the HKCU Run entry (same as the tray menu toggle).
 .PARAMETER Uninstall         Remove GasTray (app files, shortcut, Run entry). Add -KeepSettings to keep %APPDATA%\GasTray.
-.PARAMETER Ref               Git branch/tag to download from (default: main).
+.PARAMETER SourcePath        Folder holding the app files (GasTray.ps1, GasTray.Core.psm1, GasTray.vbs, uninstall.ps1).
+.PARAMETER Remote            Ignore local files and download from raw GitHub (public repo only).
+.PARAMETER Ref               Git branch/tag for -Remote / raw download (default: main).
 #>
 [CmdletBinding()]
 param(
@@ -26,6 +41,8 @@ param(
     [switch]$StartWithWindows,
     [switch]$Uninstall,
     [switch]$KeepSettings,
+    [string]$SourcePath,
+    [switch]$Remote,
     [string]$Ref = 'main'
 )
 
@@ -35,7 +52,9 @@ $RawBase    = "https://raw.githubusercontent.com/$Repo/$Ref/src"
 $Files      = @('GasTray.ps1', 'GasTray.Core.psm1', 'GasTray.vbs', 'uninstall.ps1')
 $InstallDir = Join-Path $env:LOCALAPPDATA 'GasTray'
 $DataDir    = Join-Path $env:APPDATA 'GasTray'
-$Shortcut   = Join-Path ([Environment]::GetFolderPath('Programs')) 'GasTray.lnk'
+$Programs   = [Environment]::GetFolderPath('Programs')
+if ([string]::IsNullOrEmpty($Programs)) { $Programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs' }
+$Shortcut   = Join-Path $Programs 'GasTray.lnk'
 $RunKey     = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 
 function Write-Step([string]$m) { Write-Host "[GasTray] $m" -ForegroundColor Cyan }
@@ -71,10 +90,19 @@ Stop-GasTrayProcess
 New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 
 $localSrc = $null
-if ($PSScriptRoot) {
-    $candidate = Join-Path $PSScriptRoot 'src'
-    if (Test-Path -LiteralPath (Join-Path $candidate 'GasTray.ps1')) { $localSrc = $candidate }
+if (-not $Remote) {
+    $candidates = @()
+    if ($SourcePath) { $candidates += $SourcePath }
+    elseif ($PSScriptRoot) { $candidates += (Join-Path $PSScriptRoot 'src'); $candidates += $PSScriptRoot }
+    foreach ($c in $candidates) {
+        $missing = @($Files | Where-Object { -not (Test-Path -LiteralPath (Join-Path $c $_)) })
+        if ($missing.Count -eq 0) { $localSrc = (Resolve-Path -LiteralPath $c).Path; break }
+    }
+    if ($SourcePath -and -not $localSrc) { throw "SourcePath '$SourcePath' does not contain all of: $($Files -join ', ')" }
 }
+
+if ($localSrc) { Write-Step "Installing from local files: $localSrc" }
+else { Write-Step "No local src\ folder found - downloading from $RawBase (works only if the repo is public)" }
 
 foreach ($f in $Files) {
     $dest = Join-Path $InstallDir $f
@@ -83,9 +111,14 @@ foreach ($f in $Files) {
         Copy-Item -LiteralPath (Join-Path $localSrc $f) -Destination $dest -Force
     } else {
         Write-Step "Downloading $f"
-        Invoke-WebRequest -Uri "$RawBase/$f" -OutFile $dest -UseBasicParsing
+        try {
+            Invoke-WebRequest -Uri "$RawBase/$f" -OutFile $dest -UseBasicParsing
+        } catch {
+            throw ("Download of $f failed ($($_.Exception.Message)). The repo is probably private: " +
+                "run 'gh auth login', 'gh repo clone $Repo', then run install.ps1 from the clone.")
+        }
     }
-    Unblock-File -LiteralPath $dest -ErrorAction SilentlyContinue
+    try { Unblock-File -LiteralPath $dest -ErrorAction SilentlyContinue } catch { Write-Verbose "Unblock-File: $($_.Exception.Message)" }
 }
 
 # Start Menu shortcut -> hidden launcher (wscript + .vbs), or hidden powershell if VBScript is unavailable.

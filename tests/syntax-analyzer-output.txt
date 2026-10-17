@@ -2,6 +2,7 @@ src/GasTray.Core.psm1                         parse errors: 0
 src/GasTray.ps1                               parse errors: 0
 src/uninstall.ps1                             parse errors: 0
 tests/GasTray.Core.Tests.ps1                  parse errors: 0
+tools/Build-Release.ps1                       parse errors: 0
 tools/Test-Syntax.ps1                         parse errors: 0
 install.ps1                                   parse errors: 0
 PSScriptAnalyzer: 34 finding(s) (excluded style rules: PSAvoidUsingWriteHost, PSUseShouldProcessForStateChangingFunctions, PSUseApprovedVerbs, PSReviewUnusedParameter, PSUseSingularNouns)
@@ -41,7 +42,7 @@ Information PSProvideCommentHelp                 GasTray.Core.psm1       394 The
     Warning PSAvoidUsingEmptyCatchBlock          GasTray.ps1             385 Empty catch block is used. Please use Write-Error or throw statements in catch blocks.
     Warning PSAvoidUsingEmptyCatchBlock          uninstall.ps1            20 Empty catch block is used. Please use Write-Error or throw statements in catch blocks.
     Warning PSUseDeclaredVarsMoreThanAssignments GasTray.Core.Tests.ps1    4 The variable 'endpoints' is assigned but never used.
-    Warning PSAvoidUsingEmptyCatchBlock          install.ps1              56 Empty catch block is used. Please use Write-Error or throw statements in catch blocks.
+    Warning PSAvoidUsingEmptyCatchBlock          install.ps1              75 Empty catch block is used. Please use Write-Error or throw statements in catch blocks.
 
 
 PSUseCompatibleSyntax target 5.1 : 0 finding(s)
